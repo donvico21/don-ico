@@ -582,6 +582,29 @@
     .lightbox-prev:hover,
     .lightbox-next:hover { background: rgba(212,147,10,.25); }
 
+    /* ── Hamburger toggle ── */
+    .nav-toggle {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: .35rem;
+    }
+    .nav-toggle span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: var(--text);
+      border-radius: 1px;
+      transition: transform .3s, opacity .3s;
+    }
+    .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .nav-toggle.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
     /* ── Responsive ── */
     @media (max-width: 900px) {
       .releases { grid-template-columns: 1fr 1fr; }
@@ -591,19 +614,43 @@
       .lightbox-next { right: -2.75rem; }
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 680px) {
       nav { padding: 1rem 1.25rem; }
-      .nav-links { gap: 1.25rem; }
+      .nav-toggle { display: flex; }
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%; left: 0; right: 0;
+        flex-direction: column;
+        gap: 0;
+        background: rgba(12,12,12,.97);
+        border-bottom: 1px solid var(--border);
+        padding: .5rem 1.5rem 1rem;
+      }
+      .nav-links.open { display: flex; }
+      .nav-links li a {
+        display: block;
+        padding: .75rem 0;
+        font-size: .82rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .nav-links li:last-child a { border-bottom: none; }
       .releases { grid-template-columns: 1fr; }
       section { padding: 3.5rem 1.25rem; }
+      .videos-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .card-actions { width: 100%; }
+      .card-link { width: 100%; justify-content: space-between; }
+      .stream-grid { grid-template-columns: 1fr; }
       .footer-inner { flex-direction: column; align-items: flex-start; }
       .gallery-grid { columns: 2; }
-      .lightbox-prev { left: .25rem; }
-      .lightbox-next { right: .25rem; }
+      .lightbox { padding: 1.25rem .75rem; }
+      .lightbox-close { top: -1.75rem; }
+      .lightbox-prev { left: 0; }
+      .lightbox-next { right: 0; }
     }
 
     @media (max-width: 400px) {
-      .nav-links { display: none; }
+      .gallery-grid { columns: 1; }
     }
   </style>
 </head>
@@ -612,7 +659,10 @@
 <!-- ── Navigation ── -->
 <nav>
   <a href="#hero" class="nav-logo">Don Ico</a>
-  <ul class="nav-links">
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <ul class="nav-links" id="navLinks">
     <li><a href="#about">About</a></li>
     <li><a href="#music">Music</a></li>
     <li><a href="#videos">Videos</a></li>
@@ -1331,5 +1381,40 @@
 </footer>
 
 
+<script>
+  // Hamburger nav toggle
+  (function () {
+    var toggle = document.getElementById('navToggle');
+    var links  = document.getElementById('navLinks');
+    if (!toggle || !links) return;
+    toggle.addEventListener('click', function () {
+      var open = links.classList.toggle('open');
+      toggle.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+    links.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', function () {
+        links.classList.remove('open');
+        toggle.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  })();
+
+  // Touch swipe for lightbox
+  (function () {
+    var lb = document.getElementById('lightbox');
+    var startX = 0;
+    lb.addEventListener('touchstart', function (e) {
+      startX = e.touches[0].clientX;
+    }, { passive: true });
+    lb.addEventListener('touchend', function (e) {
+      var dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) < 40) return;
+      if (dx < 0) document.getElementById('lightboxNext').click();
+      else         document.getElementById('lightboxPrev').click();
+    }, { passive: true });
+  })();
+</script>
 </body>
 </html>
