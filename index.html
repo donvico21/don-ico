@@ -489,13 +489,12 @@
     .gallery-intro em { color: var(--accent); font-style: normal; }
 
     .gallery-grid {
-      columns: 4;
-      column-gap: 10px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
     }
 
     .gallery-item {
-      break-inside: avoid;
-      margin-bottom: 10px;
       position: relative;
       overflow: hidden;
       cursor: pointer;
@@ -610,7 +609,7 @@
     @media (max-width: 900px) {
       .releases { grid-template-columns: 1fr 1fr; }
       .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
-      .gallery-grid { columns: 3; }
+      .gallery-grid { grid-template-columns: repeat(3, 1fr); }
       .lightbox-prev { left: -2.75rem; }
       .lightbox-next { right: -2.75rem; }
     }
@@ -643,7 +642,7 @@
       .card-link { width: 100%; justify-content: space-between; }
       .stream-grid { grid-template-columns: 1fr; }
       .footer-inner { flex-direction: column; align-items: flex-start; }
-      .gallery-grid { columns: 2; }
+      .gallery-grid { grid-template-columns: repeat(2, 1fr); }
       .lightbox { padding: 1.25rem .75rem; }
       .lightbox-close { top: -1.75rem; }
       .lightbox-prev { left: 0; }
@@ -651,7 +650,7 @@
     }
 
     @media (max-width: 400px) {
-      .gallery-grid { columns: 1; }
+      .gallery-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
