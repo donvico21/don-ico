@@ -686,15 +686,16 @@
     }
     #cursor-dot {
       position: fixed;
-      width: 14px; height: 10px;
-      border: 2px solid rgba(255,255,255,.9);
-      border-radius: 50%;
-      background: transparent;
+      font-size: 18px;
+      line-height: 1;
+      color: rgba(255,255,255,.9);
       pointer-events: none;
       z-index: 9999;
-      transform: translate(-50%, -50%) rotate(-20deg);
-      transition: width .18s ease, height .18s ease, opacity .3s;
+      /* same base offset as noteWobble so they merge when trail catches up */
+      transform: translate(-30%, -80%);
+      transition: opacity .3s, color .2s;
       opacity: 0;
+      user-select: none;
     }
     #cursor-ring {
       position: fixed;
@@ -707,7 +708,7 @@
       animation: noteWobble 2s ease-in-out infinite;
       transition: color .2s, font-size .2s;
     }
-    #cursor-dot.grow  { width: 18px; height: 13px; border-color: #fff; }
+    #cursor-dot.grow  { color: #fff; font-size: 22px; }
     #cursor-ring.grow { color: rgba(255,255,255,.85); font-size: 22px; }
 
     @keyframes noteWobble {
@@ -742,7 +743,7 @@
   </style>
 </head>
 <body>
-<div id="cursor-dot"></div>
+<div id="cursor-dot">○</div>
 <div id="cursor-ring">♪</div>
 <div id="scroll-progress"></div>
 
@@ -1711,6 +1712,33 @@
       if (i % 4 === 1) el.classList.add('d1');
       if (i % 4 === 2) el.classList.add('d2');
       obs.observe(el);
+    });
+  })();
+
+  /* Auto-stop other videos when one starts playing */
+  (function () {
+    /* enablejsapi=1 lets YouTube fire postMessage state-change events */
+    document.querySelectorAll('.video-wrap iframe').forEach(function (f) {
+      var s = f.getAttribute('src');
+      if (s && s.indexOf('enablejsapi') === -1) {
+        f.setAttribute('src', s + (s.indexOf('?') === -1 ? '?' : '&') + 'enablejsapi=1');
+      }
+    });
+
+    window.addEventListener('message', function (e) {
+      if (e.origin !== 'https://www.youtube.com') return;
+      try {
+        var d = JSON.parse(e.data);
+        if (d.event === 'onStateChange' && d.info === 1) { /* 1 = PLAYING */
+          document.querySelectorAll('.video-wrap iframe').forEach(function (f) {
+            if (f.contentWindow !== e.source) {
+              f.contentWindow.postMessage(
+                JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*'
+              );
+            }
+          });
+        }
+      } catch (err) {}
     });
   })();
 
