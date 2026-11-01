@@ -704,7 +704,8 @@
       transition: color .2s;
     }
     #cursor-dot.grow  { width: 13px; height: 9px; background: #fff; }
-    #cursor-ring.grow { color: rgba(255,255,255,.8); }
+    #cursor-ring.grow    { color: rgba(255,255,255,.8); }
+    #cursor-ring.settled { animation: none; transform: translate(-30%, -87%) rotate(-12deg); }
 
     /* translate(-30%, -87%) places the ♪ note head (~87% down the glyph at 36px)
        at the same cursor x,y as the oval — they merge when the trail catches up */
@@ -1605,6 +1606,8 @@
       ry += (my - ry) * 0.11;
       ring.style.left = rx + 'px';
       ring.style.top  = ry + 'px';
+      var dx = mx - rx, dy = my - ry;
+      ring.classList.toggle('settled', dx*dx + dy*dy < 9); /* stop wobble within ~3px */
       requestAnimationFrame(animateRing);
     })();
 
