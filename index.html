@@ -662,16 +662,11 @@
     .reveal.d1 { transition-delay: .1s; }
     .reveal.d2 { transition-delay: .2s; }
 
-    /* ── Hero text reveal ── */
-    @keyframes heroWordUp {
-      from { transform: translateY(110%); }
-      to   { transform: translateY(0); }
-    }
+    /* ── Hero fade-in (genres + CTA) ── */
     @keyframes heroFadeUp {
       from { opacity: 0; transform: translateY(16px); }
       to   { opacity: 1; transform: none; }
     }
-    .hero-word { animation: heroWordUp .85s cubic-bezier(.16,1,.3,1) both; }
     .hero-genres { animation: heroFadeUp .7s ease .45s both; }
     .hero-cta    { animation: heroFadeUp .7s ease .62s both; }
 
@@ -1563,17 +1558,6 @@
     }, { passive: true });
   })();
 
-  // Hero text reveal — wrap each word span in an overflow:hidden clip
-  (function () {
-    document.querySelectorAll('.hero-name span').forEach(function (span, i) {
-      var wrap = document.createElement('div');
-      wrap.style.cssText = 'overflow:hidden;display:block;';
-      span.parentNode.insertBefore(wrap, span);
-      wrap.appendChild(span);
-      span.classList.add('hero-word');
-      span.style.animationDelay = (i * 0.12) + 's';
-    });
-  })();
 
   // Custom cursor (pointer devices only)
   (function () {
@@ -1627,38 +1611,56 @@
     document.querySelectorAll('section[id]').forEach(function (s) { obs.observe(s); });
   })();
 
-  // Text scramble on section headings
+  // Scramble helper
   var _scrambleChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#';
+  var _scrambleActive = {};
   function scrambleEl(el) {
+    var id = el.dataset.scrambleId || (el.dataset.scrambleId = Math.random().toString(36).slice(2));
+    if (_scrambleActive[id]) { clearInterval(_scrambleActive[id]); }
     var orig = el.dataset.orig || el.textContent;
     el.dataset.orig = orig;
     var iter = 0, total = orig.length * 3;
-    var iv = setInterval(function () {
+    _scrambleActive[id] = setInterval(function () {
       el.textContent = orig.split('').map(function (ch, i) {
         if (ch === ' ') return ' ';
         if (i < iter / 3) return orig[i];
         return _scrambleChars[Math.floor(Math.random() * _scrambleChars.length)];
       }).join('');
       iter++;
-      if (iter > total) { clearInterval(iv); el.textContent = orig; }
+      if (iter > total) { clearInterval(_scrambleActive[id]); delete _scrambleActive[id]; el.textContent = orig; }
     }, 28);
   }
 
+  // Hero name scramble on load
+  (function () {
+    document.querySelectorAll('.hero-name span').forEach(function (span, i) {
+      setTimeout(function () { scrambleEl(span); }, i * 200);
+    });
+  })();
+
   // Scroll reveal
   (function () {
+    // One-shot observer for cards, videos, gallery, eyebrows
     var obs = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
-        if (e.isIntersecting) {
-          e.target.classList.add('visible');
-          if (e.target.dataset.scramble) scrambleEl(e.target);
-          obs.unobserve(e.target);
-        }
+        if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
       });
     }, { threshold: 0.1 });
 
+    // Bidirectional observer for section headings — re-scrambles every time
+    var headingObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          scrambleEl(e.target);
+        } else {
+          e.target.classList.remove('visible');
+        }
+      });
+    }, { threshold: 0.5 });
+
     document.querySelectorAll('.section-heading').forEach(function (el) {
-      el.dataset.scramble = '1';
-      el.classList.add('reveal'); obs.observe(el);
+      el.classList.add('reveal'); headingObs.observe(el);
     });
     document.querySelectorAll('.eyebrow').forEach(function (el) {
       el.classList.add('reveal'); obs.observe(el);
