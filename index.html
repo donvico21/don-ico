@@ -227,10 +227,11 @@
       background: var(--bg-card);
       border: 1px solid var(--border);
       overflow: hidden;
-      transition: border-color .25s, transform .25s;
+      transition: border-color .25s, transform .18s ease, box-shadow .18s ease;
       display: flex; flex-direction: column;
+      will-change: transform;
     }
-    .card:hover { border-color: #333; transform: translateY(-4px); }
+    .card:hover { border-color: #333; }
 
     .card-cover {
       aspect-ratio: 1; overflow: hidden; position: relative;
@@ -652,6 +653,15 @@
     @media (max-width: 400px) {
       .gallery-grid { grid-template-columns: 1fr; }
     }
+    /* ── Scroll reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(26px);
+      transition: opacity .65s ease, transform .65s ease;
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+    .reveal.d1 { transition-delay: .1s; }
+    .reveal.d2 { transition-delay: .2s; }
   </style>
 </head>
 <body>
@@ -1483,6 +1493,54 @@
       if (dx < 0) document.getElementById('lightboxNext').click();
       else         document.getElementById('lightboxPrev').click();
     }, { passive: true });
+  })();
+
+  // Scroll reveal
+  (function () {
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.section-heading, .eyebrow').forEach(function (el) {
+      el.classList.add('reveal'); obs.observe(el);
+    });
+    document.querySelectorAll('#music .card').forEach(function (el, i) {
+      el.classList.add('reveal');
+      if (i % 3 === 1) el.classList.add('d1');
+      if (i % 3 === 2) el.classList.add('d2');
+      obs.observe(el);
+    });
+    document.querySelectorAll('#videos .video-item').forEach(function (el, i) {
+      el.classList.add('reveal');
+      if (i % 3 === 1) el.classList.add('d1');
+      if (i % 3 === 2) el.classList.add('d2');
+      obs.observe(el);
+    });
+    document.querySelectorAll('.gallery-item').forEach(function (el, i) {
+      el.classList.add('reveal');
+      if (i % 4 === 1) el.classList.add('d1');
+      if (i % 4 === 2) el.classList.add('d2');
+      obs.observe(el);
+    });
+  })();
+
+  // Album card 3D tilt on hover
+  (function () {
+    document.querySelectorAll('#music .card').forEach(function (card) {
+      card.addEventListener('mousemove', function (e) {
+        var r = card.getBoundingClientRect();
+        var x = (e.clientX - r.left) / r.width - 0.5;
+        var y = (e.clientY - r.top) / r.height - 0.5;
+        card.style.transform = 'perspective(700px) rotateY(' + (x * 10) + 'deg) rotateX(' + (-y * 7) + 'deg) translateY(-6px)';
+        card.style.boxShadow = '0 20px 40px rgba(0,0,0,.65), 0 0 0 1px #333';
+      });
+      card.addEventListener('mouseleave', function () {
+        card.style.transform = '';
+        card.style.boxShadow = '';
+      });
+    });
   })();
 </script>
 </body>
