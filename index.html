@@ -1631,12 +1631,6 @@
     }, 28);
   }
 
-  // Hero name scramble on load
-  (function () {
-    document.querySelectorAll('.hero-name span').forEach(function (span, i) {
-      setTimeout(function () { scrambleEl(span); }, i * 200);
-    });
-  })();
 
   // Scroll reveal
   (function () {
@@ -1652,7 +1646,8 @@
       entries.forEach(function (e) {
         if (e.isIntersecting) {
           e.target.classList.add('visible');
-          scrambleEl(e.target);
+          var delay = parseInt(e.target.dataset.scrambleDelay || '0', 10);
+          setTimeout(function () { scrambleEl(e.target); }, delay);
         } else {
           e.target.classList.remove('visible');
         }
@@ -1661,6 +1656,10 @@
 
     document.querySelectorAll('.section-heading').forEach(function (el) {
       el.classList.add('reveal'); headingObs.observe(el);
+    });
+    document.querySelectorAll('.hero-name span').forEach(function (el, i) {
+      el.dataset.scrambleDelay = i * 200;
+      headingObs.observe(el);
     });
     document.querySelectorAll('.eyebrow').forEach(function (el) {
       el.classList.add('reveal'); obs.observe(el);
