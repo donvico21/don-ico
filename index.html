@@ -449,17 +449,14 @@
       background: var(--bg-card);
       border: 1px solid var(--border);
       position: relative;
-      z-index: 1;
-      /* z-index 0s .38s = delay reset until scale-down finishes */
-      transition: border-color .25s, transform .38s cubic-bezier(.25,.46,.45,.94), box-shadow .38s, z-index 0s .38s;
+      transition: border-color .25s, transform .25s;
+      cursor: pointer;
     }
-    /* #videos prefix beats .reveal.visible (which also sets transform) */
-    #videos .video-item:hover {
-      transform: scale(2);
-      z-index: 30;
-      box-shadow: 0 28px 64px rgba(0,0,0,.85);
-      border-color: #444;
-      transition: border-color .25s, transform .38s cubic-bezier(.25,.46,.45,.94), box-shadow .38s, z-index 0s;
+    .video-item:hover { border-color: #333; transform: translateY(-3px); }
+    .video-click-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
     }
 
     .video-wrap {
@@ -686,34 +683,36 @@
     }
     #cursor-dot {
       position: fixed;
-      font-size: 18px;
-      line-height: 1;
-      color: rgba(255,255,255,.9);
+      width: 14px; height: 10px;
+      border: 1.5px solid rgba(255,255,255,.9);
+      border-radius: 50%;
+      background: transparent;
       pointer-events: none;
       z-index: 9999;
-      /* same base offset as noteWobble so they merge when trail catches up */
-      transform: translate(-30%, -80%);
-      transition: opacity .3s, color .2s;
+      /* -12deg matches noteWobble base rotation so they align when merged */
+      transform: translate(-50%, -50%) rotate(-12deg);
+      transition: opacity .3s, width .15s, height .15s;
       opacity: 0;
-      user-select: none;
     }
     #cursor-ring {
       position: fixed;
-      font-size: 18px;
+      font-size: 36px;
       line-height: 1;
       color: rgba(255,255,255,.45);
       pointer-events: none;
       z-index: 9998;
       user-select: none;
       animation: noteWobble 2s ease-in-out infinite;
-      transition: color .2s, font-size .2s;
+      transition: color .2s;
     }
-    #cursor-dot.grow  { color: #fff; font-size: 22px; }
-    #cursor-ring.grow { color: rgba(255,255,255,.85); font-size: 22px; }
+    #cursor-dot.grow  { width: 18px; height: 13px; border-color: #fff; }
+    #cursor-ring.grow { color: rgba(255,255,255,.8); }
 
+    /* translate(-30%, -87%) places the ♪ note head (~87% down the glyph at 36px)
+       at the same cursor x,y as the oval — they merge when the trail catches up */
     @keyframes noteWobble {
-      0%, 100% { transform: translate(-30%, -80%) rotate(-12deg) scale(1); }
-      50%       { transform: translate(-30%, -80%) rotate(10deg)  scale(1.15); }
+      0%, 100% { transform: translate(-30%, -87%) rotate(-12deg) scale(1); }
+      50%       { transform: translate(-30%, -87%) rotate(10deg)  scale(1.1); }
     }
 
     /* ── Scroll progress bar ── */
@@ -743,7 +742,7 @@
   </style>
 </head>
 <body>
-<div id="cursor-dot">○</div>
+<div id="cursor-dot"></div>
 <div id="cursor-ring">♪</div>
 <div id="scroll-progress"></div>
 
@@ -1090,56 +1089,56 @@
 
       <div class="video-item">
         <div class="video-wrap">
-          <iframe src="https://www.youtube.com/embed/7ksb4n5xrH0" title="Drown You In Truth" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          <iframe src="https://www.youtube.com/embed/7ksb4n5xrH0?enablejsapi=1" title="Drown You In Truth" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
         </div>
         <div class="video-title">Drown You In Truth</div>
       </div>
 
       <div class="video-item">
         <div class="video-wrap">
-          <iframe src="https://www.youtube.com/embed/Iv10Jdwlr8o" title="The Devil Is In The Detail" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          <iframe src="https://www.youtube.com/embed/Iv10Jdwlr8o?enablejsapi=1" title="The Devil Is In The Detail" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
         </div>
         <div class="video-title">The Devil Is In The Detail</div>
       </div>
 
       <div class="video-item">
         <div class="video-wrap">
-          <iframe src="https://www.youtube.com/embed/tg9R26GsElE" title="Disinformation This Information V.2" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          <iframe src="https://www.youtube.com/embed/tg9R26GsElE?enablejsapi=1" title="Disinformation This Information V.2" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
         </div>
         <div class="video-title">Disinformation This Information V.2</div>
       </div>
 
       <div class="video-item">
         <div class="video-wrap">
-          <iframe src="https://www.youtube.com/embed/ElKITFQxjLM" title="Oras Na" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          <iframe src="https://www.youtube.com/embed/ElKITFQxjLM?enablejsapi=1" title="Oras Na" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
         </div>
         <div class="video-title">Oras Na</div>
       </div>
 
       <div class="video-item">
         <div class="video-wrap">
-          <iframe src="https://www.youtube.com/embed/RmfPHPKdvK4" title="Raise Your Flag" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          <iframe src="https://www.youtube.com/embed/RmfPHPKdvK4?enablejsapi=1" title="Raise Your Flag" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
         </div>
         <div class="video-title">Raise Your Flag</div>
       </div>
 
       <div class="video-item">
         <div class="video-wrap">
-          <iframe src="https://www.youtube.com/embed/LVl7LM_GF_Q" title="Shadows of Deception" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          <iframe src="https://www.youtube.com/embed/LVl7LM_GF_Q?enablejsapi=1" title="Shadows of Deception" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
         </div>
         <div class="video-title">Shadows of Deception</div>
       </div>
 
       <div class="video-item">
         <div class="video-wrap">
-          <iframe src="https://www.youtube.com/embed/gz40eAkkub0" title="Kalayaan" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          <iframe src="https://www.youtube.com/embed/gz40eAkkub0?enablejsapi=1" title="Kalayaan" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
         </div>
         <div class="video-title">Kalayaan</div>
       </div>
 
       <div class="video-item">
         <div class="video-wrap">
-          <iframe src="https://www.youtube.com/embed/HCq2LtCmNwk" title="Bagong Pag-Asa" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          <iframe src="https://www.youtube.com/embed/HCq2LtCmNwk?enablejsapi=1" title="Bagong Pag-Asa" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
         </div>
         <div class="video-title">Bagong Pag-Asa</div>
       </div>
@@ -1715,21 +1714,48 @@
     });
   })();
 
-  /* Auto-stop other videos when one starts playing */
+  /* Click-to-fullscreen with auto-stop */
   (function () {
-    /* enablejsapi=1 lets YouTube fire postMessage state-change events */
-    document.querySelectorAll('.video-wrap iframe').forEach(function (f) {
-      var s = f.getAttribute('src');
-      if (s && s.indexOf('enablejsapi') === -1) {
-        f.setAttribute('src', s + (s.indexOf('?') === -1 ? '?' : '&') + 'enablejsapi=1');
-      }
+    function pauseOthers(exceptFrame) {
+      document.querySelectorAll('.video-wrap iframe').forEach(function (f) {
+        if (f !== exceptFrame) {
+          f.contentWindow.postMessage(
+            JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*'
+          );
+        }
+      });
+    }
+
+    /* Transparent overlay on each video — intercepts first click,
+       goes fullscreen, plays, then removes itself */
+    document.querySelectorAll('.video-wrap').forEach(function (wrap) {
+      var overlay = document.createElement('div');
+      overlay.className = 'video-click-overlay';
+      wrap.appendChild(overlay);
+
+      overlay.addEventListener('click', function () {
+        overlay.remove();
+        var iframe = wrap.querySelector('iframe');
+        pauseOthers(iframe);
+        var el = iframe;
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
+        else if (el.msRequestFullscreen) el.msRequestFullscreen();
+        setTimeout(function () {
+          iframe.contentWindow.postMessage(
+            JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*'
+          );
+        }, 200);
+      });
     });
 
+    /* Belt-and-suspenders: also stop others when any video starts playing */
     window.addEventListener('message', function (e) {
       if (e.origin !== 'https://www.youtube.com') return;
       try {
         var d = JSON.parse(e.data);
-        if (d.event === 'onStateChange' && d.info === 1) { /* 1 = PLAYING */
+        if (d.event === 'onStateChange' && d.info === 1) {
           document.querySelectorAll('.video-wrap iframe').forEach(function (f) {
             if (f.contentWindow !== e.source) {
               f.contentWindow.postMessage(
