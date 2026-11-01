@@ -688,16 +688,22 @@
     }
     #cursor-ring {
       position: fixed;
-      width: 30px; height: 30px;
-      border: 1px solid rgba(255,255,255,.35);
-      border-radius: 50%;
+      font-size: 18px;
+      line-height: 1;
+      color: rgba(255,255,255,.45);
       pointer-events: none;
       z-index: 9998;
-      transform: translate(-50%, -50%);
-      transition: width .2s ease, height .2s ease, border-color .2s;
+      user-select: none;
+      animation: noteWobble 2s ease-in-out infinite;
+      transition: color .2s, font-size .2s;
     }
     #cursor-dot.grow  { width: 10px; height: 10px; }
-    #cursor-ring.grow { width: 46px; height: 46px; border-color: rgba(255,255,255,.55); }
+    #cursor-ring.grow { color: rgba(255,255,255,.8); font-size: 24px; }
+
+    @keyframes noteWobble {
+      0%, 100% { transform: translate(-30%, -80%) rotate(-12deg) scale(1); }
+      50%       { transform: translate(-30%, -80%) rotate(10deg)  scale(1.15); }
+    }
 
     /* ── Scroll progress bar ── */
     #scroll-progress {
@@ -727,7 +733,7 @@
 </head>
 <body>
 <div id="cursor-dot"></div>
-<div id="cursor-ring"></div>
+<div id="cursor-ring">♪</div>
 <div id="scroll-progress"></div>
 
 <!-- ── Navigation ── -->
@@ -1690,24 +1696,52 @@
       obs.observe(el);
     });
 
-    /* video hover: scale 2× and translate to viewport center */
-    document.querySelectorAll('.video-item').forEach(function (item) {
-      var leaveTimer;
-      item.addEventListener('mouseenter', function () {
-        clearTimeout(leaveTimer);
-        var r  = item.getBoundingClientRect();
-        var dx = window.innerWidth  / 2 - (r.left + r.width  / 2);
-        var dy = window.innerHeight / 2 - (r.top  + r.height / 2);
-        item.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(2)';
-        item.style.zIndex    = '30';
-        item.style.boxShadow = '0 28px 64px rgba(0,0,0,.85)';
+    /* video hover: scale 2× and translate to viewport center
+       Uses mousemove bounds-check (not mouseleave) so the video stays
+       at center even though the transform moves it away from the cursor. */
+    (function () {
+      var activeItem = null;
+      var lock = false;
+      var lockTimer;
+
+      function collapseActive() {
+        if (!activeItem) return;
+        activeItem.style.transform = '';
+        activeItem.style.boxShadow = '';
+        var prev = activeItem;
+        activeItem = null;
+        clearTimeout(lockTimer);
+        lock = false;
+        setTimeout(function () { prev.style.zIndex = ''; }, 420);
+      }
+
+      document.querySelectorAll('.video-item').forEach(function (item) {
+        item.addEventListener('mouseenter', function () {
+          if (activeItem === item || lock) return;
+          if (activeItem) collapseActive();
+          activeItem = item;
+          lock = true;
+          var r  = item.getBoundingClientRect();
+          var dx = window.innerWidth  / 2 - (r.left + r.width  / 2);
+          var dy = window.innerHeight / 2 - (r.top  + r.height / 2);
+          item.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(2)';
+          item.style.zIndex    = '30';
+          item.style.boxShadow = '0 28px 64px rgba(0,0,0,.85)';
+          clearTimeout(lockTimer);
+          lockTimer = setTimeout(function () { lock = false; }, 430);
+        });
       });
-      item.addEventListener('mouseleave', function () {
-        item.style.transform = '';
-        item.style.boxShadow = '';
-        leaveTimer = setTimeout(function () { item.style.zIndex = ''; }, 400);
+
+      /* After transition completes, collapse if cursor left the expanded video */
+      document.addEventListener('mousemove', function (e) {
+        if (!activeItem || lock) return;
+        var r = activeItem.getBoundingClientRect();
+        if (e.clientX < r.left || e.clientX > r.right ||
+            e.clientY < r.top  || e.clientY > r.bottom) {
+          collapseActive();
+        }
       });
-    });
+    })();
     document.querySelectorAll('.gallery-item').forEach(function (el, i) {
       el.classList.add('reveal');
       if (i % 4 === 1) el.classList.add('d1');
