@@ -684,13 +684,12 @@
     #cursor-dot {
       position: fixed;
       width: 14px; height: 10px;
-      border: 1.5px solid rgba(255,255,255,.9);
+      background: rgba(255,255,255,.9);
       border-radius: 50%;
-      background: transparent;
       pointer-events: none;
       z-index: 9999;
       transform: translate(-50%, -50%) rotate(-12deg);
-      transition: opacity .3s, border-color .2s, width .15s, height .15s;
+      transition: opacity .3s, background .2s, width .15s, height .15s;
       opacity: 0;
     }
     #cursor-ring {
@@ -704,7 +703,7 @@
       animation: noteWobble 2s ease-in-out infinite;
       transition: color .2s;
     }
-    #cursor-dot.grow  { width: 18px; height: 13px; border-color: #fff; }
+    #cursor-dot.grow  { width: 18px; height: 13px; background: #fff; }
     #cursor-ring.grow { color: rgba(255,255,255,.8); }
 
     /* translate(-30%, -87%) places the ♪ note head (~87% down the glyph at 36px)
