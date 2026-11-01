@@ -453,12 +453,12 @@
       /* z-index 0s .38s = delay reset until scale-down finishes */
       transition: border-color .25s, transform .38s cubic-bezier(.25,.46,.45,.94), box-shadow .38s, z-index 0s .38s;
     }
-    .video-item:hover {
+    /* #videos prefix beats .reveal.visible (which also sets transform) */
+    #videos .video-item:hover {
       transform: scale(2);
       z-index: 30;
       box-shadow: 0 28px 64px rgba(0,0,0,.85);
       border-color: #444;
-      /* immediate z-index rise on hover-in */
       transition: border-color .25s, transform .38s cubic-bezier(.25,.46,.45,.94), box-shadow .38s, z-index 0s;
     }
 
@@ -686,12 +686,13 @@
     }
     #cursor-dot {
       position: fixed;
-      width: 6px; height: 6px;
-      background: #fff;
+      width: 14px; height: 10px;
+      border: 2px solid rgba(255,255,255,.9);
       border-radius: 50%;
+      background: transparent;
       pointer-events: none;
       z-index: 9999;
-      transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%) rotate(-20deg);
       transition: width .18s ease, height .18s ease, opacity .3s;
       opacity: 0;
     }
@@ -706,8 +707,8 @@
       animation: noteWobble 2s ease-in-out infinite;
       transition: color .2s, font-size .2s;
     }
-    #cursor-dot.grow  { width: 10px; height: 10px; }
-    #cursor-ring.grow { color: rgba(255,255,255,.8); font-size: 24px; }
+    #cursor-dot.grow  { width: 18px; height: 13px; border-color: #fff; }
+    #cursor-ring.grow { color: rgba(255,255,255,.85); font-size: 22px; }
 
     @keyframes noteWobble {
       0%, 100% { transform: translate(-30%, -80%) rotate(-12deg) scale(1); }
