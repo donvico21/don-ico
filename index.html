@@ -450,7 +450,16 @@
       border: 1px solid var(--border);
       position: relative;
       z-index: 1;
-      transition: border-color .25s, transform .38s cubic-bezier(.25,.46,.45,.94), box-shadow .38s;
+      /* z-index 0s .38s = delay reset until scale-down finishes */
+      transition: border-color .25s, transform .38s cubic-bezier(.25,.46,.45,.94), box-shadow .38s, z-index 0s .38s;
+    }
+    .video-item:hover {
+      transform: scale(2);
+      z-index: 30;
+      box-shadow: 0 28px 64px rgba(0,0,0,.85);
+      border-color: #444;
+      /* immediate z-index rise on hover-in */
+      transition: border-color .25s, transform .38s cubic-bezier(.25,.46,.45,.94), box-shadow .38s, z-index 0s;
     }
 
     .video-wrap {
@@ -1696,52 +1705,6 @@
       obs.observe(el);
     });
 
-    /* video hover: scale 2× and translate to viewport center
-       Uses mousemove bounds-check (not mouseleave) so the video stays
-       at center even though the transform moves it away from the cursor. */
-    (function () {
-      var activeItem = null;
-      var lock = false;
-      var lockTimer;
-
-      function collapseActive() {
-        if (!activeItem) return;
-        activeItem.style.transform = '';
-        activeItem.style.boxShadow = '';
-        var prev = activeItem;
-        activeItem = null;
-        clearTimeout(lockTimer);
-        lock = false;
-        setTimeout(function () { prev.style.zIndex = ''; }, 420);
-      }
-
-      document.querySelectorAll('.video-item').forEach(function (item) {
-        item.addEventListener('mouseenter', function () {
-          if (activeItem === item || lock) return;
-          if (activeItem) collapseActive();
-          activeItem = item;
-          lock = true;
-          var r  = item.getBoundingClientRect();
-          var dx = window.innerWidth  / 2 - (r.left + r.width  / 2);
-          var dy = window.innerHeight / 2 - (r.top  + r.height / 2);
-          item.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(2)';
-          item.style.zIndex    = '30';
-          item.style.boxShadow = '0 28px 64px rgba(0,0,0,.85)';
-          clearTimeout(lockTimer);
-          lockTimer = setTimeout(function () { lock = false; }, 430);
-        });
-      });
-
-      /* After transition completes, collapse if cursor left the expanded video */
-      document.addEventListener('mousemove', function (e) {
-        if (!activeItem || lock) return;
-        var r = activeItem.getBoundingClientRect();
-        if (e.clientX < r.left || e.clientX > r.right ||
-            e.clientY < r.top  || e.clientY > r.bottom) {
-          collapseActive();
-        }
-      });
-    })();
     document.querySelectorAll('.gallery-item').forEach(function (el, i) {
       el.classList.add('reveal');
       if (i % 4 === 1) el.classList.add('d1');
