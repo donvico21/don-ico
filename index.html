@@ -1451,6 +1451,18 @@
       if (e.key === 'ArrowLeft')  show(current - 1);
       if (e.key === 'ArrowRight') show(current + 1);
     });
+
+    // Mouse wheel scrolls through images
+    var lastWheel = 0;
+    lightbox.addEventListener('wheel', function (e) {
+      if (images.length <= 1) return;
+      var now = Date.now();
+      if (now - lastWheel < 350) return;
+      lastWheel = now;
+      e.preventDefault();
+      if (e.deltaY > 0) show(current + 1);
+      else              show(current - 1);
+    }, { passive: false });
   })();
 </script>
 
