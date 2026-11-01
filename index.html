@@ -227,11 +227,10 @@
       background: var(--bg-card);
       border: 1px solid var(--border);
       overflow: hidden;
-      transition: border-color .25s, transform .18s ease, box-shadow .18s ease;
+      transition: border-color .25s, transform .25s;
       display: flex; flex-direction: column;
-      will-change: transform;
     }
-    .card:hover { border-color: #333; }
+    .card:hover { border-color: #333; transform: translateY(-4px); }
 
     .card-cover {
       aspect-ratio: 1; overflow: hidden; position: relative;
@@ -1526,22 +1525,6 @@
     });
   })();
 
-  // Album card 3D tilt on hover
-  (function () {
-    document.querySelectorAll('#music .card').forEach(function (card) {
-      card.addEventListener('mousemove', function (e) {
-        var r = card.getBoundingClientRect();
-        var x = (e.clientX - r.left) / r.width - 0.5;
-        var y = (e.clientY - r.top) / r.height - 0.5;
-        card.style.transform = 'perspective(700px) rotateY(' + (x * 10) + 'deg) rotateX(' + (-y * 7) + 'deg) translateY(-6px)';
-        card.style.boxShadow = '0 20px 40px rgba(0,0,0,.65), 0 0 0 1px #333';
-      });
-      card.addEventListener('mouseleave', function () {
-        card.style.transform = '';
-        card.style.boxShadow = '';
-      });
-    });
-  })();
 </script>
 </body>
 </html>
