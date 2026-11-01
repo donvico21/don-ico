@@ -693,26 +693,16 @@
       transition: opacity .3s, background .2s, width .15s, height .15s;
       opacity: 0;
     }
-    #cursor-ring {
+    #cursor-dot.grow { width: 13px; height: 9px; background: #fff; }
+    .trail-note {
       position: fixed;
       font-size: 36px;
       line-height: 1;
-      color: rgba(255,255,255,.45);
+      color: #fff;
       pointer-events: none;
       z-index: 9998;
       user-select: none;
-      animation: noteWobble 2s ease-in-out infinite;
-      transition: color .2s;
-    }
-    #cursor-dot.grow  { width: 13px; height: 9px; background: #fff; }
-    #cursor-ring.grow    { color: rgba(255,255,255,.8); }
-    #cursor-ring.settled { animation: none; transform: translate(-30%, -87%) rotate(-12deg); }
-
-    /* translate(-30%, -87%) places the ♪ note head (~87% down the glyph at 36px)
-       at the same cursor x,y as the oval — they merge when the trail catches up */
-    @keyframes noteWobble {
-      0%, 100% { transform: translate(-30%, -87%) rotate(-12deg) scale(1); }
-      50%       { transform: translate(-30%, -87%) rotate(10deg)  scale(1.1); }
+      transform: translate(-30%, -87%) rotate(-12deg);
     }
 
     /* ── Scroll progress bar ── */
@@ -743,7 +733,6 @@
 </head>
 <body>
 <div id="cursor-dot"></div>
-<div id="cursor-ring">♪</div>
 <div id="scroll-progress"></div>
 
 <!-- ── Navigation ── -->
@@ -1588,33 +1577,66 @@
   })();
 
 
-  // Custom cursor (pointer devices only)
+  // Custom cursor + velocity-driven multi-note trail (pointer devices only)
   (function () {
     if (!window.matchMedia('(hover: hover)').matches) return;
-    var dot  = document.getElementById('cursor-dot');
-    var ring = document.getElementById('cursor-ring');
-    var mx = -100, my = -100, rx = -100, ry = -100;
+    var dot = document.getElementById('cursor-dot');
+    var mx = -200, my = -200, pmx = -200, pmy = -200;
+    var velSmooth = 0;
+
+    /* Trail notes closest→farthest from cursor.
+       threshold = velSmooth value at which the note starts to appear.
+       Higher threshold = only visible when moving fast. */
+    var NOTES = [
+      { char: '♩', lerp: 0.15, threshold: 5  },   /* quarter  – appears at slow movement  */
+      { char: '♪', lerp: 0.09, threshold: 18 },   /* eighth   – medium speed              */
+      { char: '♫', lerp: 0.05, threshold: 35 },   /* beamed   – fast                      */
+      { char: '♬', lerp: 0.03, threshold: 55 },   /* sixteenth – very fast                */
+    ];
+
+    var trail = NOTES.map(function (n) {
+      var el = document.createElement('div');
+      el.className = 'trail-note';
+      el.textContent = n.char;
+      document.body.appendChild(el);
+      return { el: el, x: -200, y: -200 };
+    });
 
     document.addEventListener('mousemove', function (e) {
+      pmx = mx; pmy = my;
       mx = e.clientX; my = e.clientY;
-      dot.style.left = mx + 'px';
-      dot.style.top  = my + 'px';
+      var dx = mx - pmx, dy = my - pmy;
+      velSmooth = velSmooth * 0.6 + Math.sqrt(dx * dx + dy * dy) * 0.4;
+      dot.style.left    = mx + 'px';
+      dot.style.top     = my + 'px';
       dot.style.opacity = '1';
     });
 
-    (function animateRing() {
-      rx += (mx - rx) * 0.11;
-      ry += (my - ry) * 0.11;
-      ring.style.left = rx + 'px';
-      ring.style.top  = ry + 'px';
-      var dx = mx - rx, dy = my - ry;
-      ring.classList.toggle('settled', dx*dx + dy*dy < 9); /* stop wobble within ~3px */
-      requestAnimationFrame(animateRing);
+    (function animateTrail() {
+      velSmooth *= 0.88; /* decay toward 0 when mouse is still */
+
+      for (var i = 0; i < NOTES.length; i++) {
+        var n = NOTES[i];
+        var s = trail[i];
+        s.x += (mx - s.x) * n.lerp;
+        s.y += (my - s.y) * n.lerp;
+        var dx = mx - s.x, dy = my - s.y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        /* velFactor: 0 below threshold, ramps to 1 over the next threshold worth of speed */
+        var velFactor  = Math.max(0, Math.min(1, (velSmooth - n.threshold) / n.threshold));
+        /* distFactor: fades to 0 as note converges on cursor (the "merge" effect) */
+        var distFactor = Math.min(1, dist / 22);
+        s.el.style.left    = s.x + 'px';
+        s.el.style.top     = s.y + 'px';
+        s.el.style.opacity = String(velFactor * distFactor * 0.8);
+      }
+
+      requestAnimationFrame(animateTrail);
     })();
 
     document.querySelectorAll('a, button, .card, .gallery-item, .card-link').forEach(function (el) {
-      el.addEventListener('mouseenter', function () { dot.classList.add('grow'); ring.classList.add('grow'); });
-      el.addEventListener('mouseleave', function () { dot.classList.remove('grow'); ring.classList.remove('grow'); });
+      el.addEventListener('mouseenter', function () { dot.classList.add('grow'); });
+      el.addEventListener('mouseleave', function () { dot.classList.remove('grow'); });
     });
   })();
 
