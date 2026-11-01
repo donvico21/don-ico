@@ -442,15 +442,16 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 1.5rem;
+      overflow: visible;
     }
 
     .video-item {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      overflow: hidden;
-      transition: border-color .25s, transform .25s;
+      position: relative;
+      z-index: 1;
+      transition: border-color .25s, transform .38s cubic-bezier(.25,.46,.45,.94), box-shadow .38s;
     }
-    .video-item:hover { border-color: #333; transform: translateY(-3px); }
 
     .video-wrap {
       position: relative;
@@ -1311,9 +1312,9 @@
         <figcaption><span class="caption-name">Rhany</span></figcaption>
       </figure>
 
-      <figure class="gallery-item" data-name="Meek's Friend">
-        <img src="Gratitude%20Gallery/33.%20MeekFriend.jpg" alt="Meek's Friend" loading="lazy">
-        <figcaption><span class="caption-name">Meek's Friend</span></figcaption>
+      <figure class="gallery-item" data-name="Nono">
+        <img src="Gratitude%20Gallery/33.%20Nono.jpg" alt="Nono" loading="lazy">
+        <figcaption><span class="caption-name">Nono</span></figcaption>
       </figure>
 
       <figure class="gallery-item" data-name="Utoy">
@@ -1687,6 +1688,25 @@
       if (i % 3 === 1) el.classList.add('d1');
       if (i % 3 === 2) el.classList.add('d2');
       obs.observe(el);
+    });
+
+    /* video hover: scale 2× and translate to viewport center */
+    document.querySelectorAll('.video-item').forEach(function (item) {
+      var leaveTimer;
+      item.addEventListener('mouseenter', function () {
+        clearTimeout(leaveTimer);
+        var r  = item.getBoundingClientRect();
+        var dx = window.innerWidth  / 2 - (r.left + r.width  / 2);
+        var dy = window.innerHeight / 2 - (r.top  + r.height / 2);
+        item.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(2)';
+        item.style.zIndex    = '30';
+        item.style.boxShadow = '0 28px 64px rgba(0,0,0,.85)';
+      });
+      item.addEventListener('mouseleave', function () {
+        item.style.transform = '';
+        item.style.boxShadow = '';
+        leaveTimer = setTimeout(function () { item.style.zIndex = ''; }, 400);
+      });
     });
     document.querySelectorAll('.gallery-item').forEach(function (el, i) {
       el.classList.add('reveal');
