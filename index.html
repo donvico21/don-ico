@@ -661,9 +661,78 @@
     .reveal.visible { opacity: 1; transform: none; }
     .reveal.d1 { transition-delay: .1s; }
     .reveal.d2 { transition-delay: .2s; }
+
+    /* ── Hero text reveal ── */
+    @keyframes heroWordUp {
+      from { transform: translateY(110%); }
+      to   { transform: translateY(0); }
+    }
+    @keyframes heroFadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .hero-word { animation: heroWordUp .85s cubic-bezier(.16,1,.3,1) both; }
+    .hero-genres { animation: heroFadeUp .7s ease .45s both; }
+    .hero-cta    { animation: heroFadeUp .7s ease .62s both; }
+
+    /* ── Custom cursor (pointer devices only) ── */
+    @media (hover: hover) {
+      html, html * { cursor: none !important; }
+    }
+    #cursor-dot {
+      position: fixed;
+      width: 6px; height: 6px;
+      background: #fff;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width .18s ease, height .18s ease, opacity .3s;
+      opacity: 0;
+    }
+    #cursor-ring {
+      position: fixed;
+      width: 30px; height: 30px;
+      border: 1px solid rgba(255,255,255,.35);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: width .2s ease, height .2s ease, border-color .2s;
+    }
+    #cursor-dot.grow  { width: 10px; height: 10px; }
+    #cursor-ring.grow { width: 46px; height: 46px; border-color: rgba(255,255,255,.55); }
+
+    /* ── Scroll progress bar ── */
+    #scroll-progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px; width: 0%;
+      background: rgba(255,255,255,.65);
+      z-index: 9997;
+      pointer-events: none;
+    }
+
+    /* ── Active nav link ── */
+    .nav-links a.active { color: var(--text); }
+
+    /* ── Gallery shimmer sweep on hover ── */
+    .gallery-item::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(120deg, transparent 25%, rgba(255,255,255,.09) 50%, transparent 75%);
+      transform: translateX(-120%);
+      transition: transform .55s ease;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .gallery-item:hover::before { transform: translateX(120%); }
   </style>
 </head>
 <body>
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
+<div id="scroll-progress"></div>
 
 <!-- ── Navigation ── -->
 <nav>
@@ -1494,15 +1563,104 @@
     }, { passive: true });
   })();
 
+  // Hero text reveal — wrap each word span in an overflow:hidden clip
+  (function () {
+    document.querySelectorAll('.hero-name span').forEach(function (span, i) {
+      var wrap = document.createElement('div');
+      wrap.style.cssText = 'overflow:hidden;display:block;';
+      span.parentNode.insertBefore(wrap, span);
+      wrap.appendChild(span);
+      span.classList.add('hero-word');
+      span.style.animationDelay = (i * 0.12) + 's';
+    });
+  })();
+
+  // Custom cursor (pointer devices only)
+  (function () {
+    if (!window.matchMedia('(hover: hover)').matches) return;
+    var dot  = document.getElementById('cursor-dot');
+    var ring = document.getElementById('cursor-ring');
+    var mx = -100, my = -100, rx = -100, ry = -100;
+
+    document.addEventListener('mousemove', function (e) {
+      mx = e.clientX; my = e.clientY;
+      dot.style.left = mx + 'px';
+      dot.style.top  = my + 'px';
+      dot.style.opacity = '1';
+    });
+
+    (function animateRing() {
+      rx += (mx - rx) * 0.11;
+      ry += (my - ry) * 0.11;
+      ring.style.left = rx + 'px';
+      ring.style.top  = ry + 'px';
+      requestAnimationFrame(animateRing);
+    })();
+
+    document.querySelectorAll('a, button, .card, .gallery-item, .card-link').forEach(function (el) {
+      el.addEventListener('mouseenter', function () { dot.classList.add('grow'); ring.classList.add('grow'); });
+      el.addEventListener('mouseleave', function () { dot.classList.remove('grow'); ring.classList.remove('grow'); });
+    });
+  })();
+
+  // Scroll progress bar
+  (function () {
+    var bar = document.getElementById('scroll-progress');
+    window.addEventListener('scroll', function () {
+      var pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+      bar.style.width = pct + '%';
+    }, { passive: true });
+  })();
+
+  // Active nav highlight
+  (function () {
+    var navLinks = document.querySelectorAll('.nav-links a');
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var id = e.target.id;
+        navLinks.forEach(function (a) {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+        });
+      });
+    }, { threshold: 0.35 });
+    document.querySelectorAll('section[id]').forEach(function (s) { obs.observe(s); });
+  })();
+
+  // Text scramble on section headings
+  var _scrambleChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#';
+  function scrambleEl(el) {
+    var orig = el.dataset.orig || el.textContent;
+    el.dataset.orig = orig;
+    var iter = 0, total = orig.length * 3;
+    var iv = setInterval(function () {
+      el.textContent = orig.split('').map(function (ch, i) {
+        if (ch === ' ') return ' ';
+        if (i < iter / 3) return orig[i];
+        return _scrambleChars[Math.floor(Math.random() * _scrambleChars.length)];
+      }).join('');
+      iter++;
+      if (iter > total) { clearInterval(iv); el.textContent = orig; }
+    }, 28);
+  }
+
   // Scroll reveal
   (function () {
     var obs = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
-        if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          if (e.target.dataset.scramble) scrambleEl(e.target);
+          obs.unobserve(e.target);
+        }
       });
     }, { threshold: 0.1 });
 
-    document.querySelectorAll('.section-heading, .eyebrow').forEach(function (el) {
+    document.querySelectorAll('.section-heading').forEach(function (el) {
+      el.dataset.scramble = '1';
+      el.classList.add('reveal'); obs.observe(el);
+    });
+    document.querySelectorAll('.eyebrow').forEach(function (el) {
       el.classList.add('reveal'); obs.observe(el);
     });
     document.querySelectorAll('#music .card').forEach(function (el, i) {
