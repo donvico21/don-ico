@@ -1577,29 +1577,33 @@
   })();
 
 
-  // Custom cursor + velocity-driven multi-note trail (pointer devices only)
+  // Custom cursor + chain trail (pointer devices only)
   (function () {
     if (!window.matchMedia('(hover: hover)').matches) return;
     var dot = document.getElementById('cursor-dot');
-    var mx = -200, my = -200, pmx = -200, pmy = -200;
-    var velSmooth = 0;
+    var mx = -200, my = -200, pmx = -200, pmy = -200, velSmooth = 0;
 
-    /* Trail notes closest→farthest from cursor.
-       threshold = velSmooth value at which the note starts to appear.
-       Higher threshold = only visible when moving fast. */
-    var NOTES = [
-      { char: '♩', lerp: 0.15, threshold: 5  },   /* quarter  – appears at slow movement  */
-      { char: '♪', lerp: 0.09, threshold: 18 },   /* eighth   – medium speed              */
-      { char: '♫', lerp: 0.05, threshold: 35 },   /* beamed   – fast                      */
-      { char: '♬', lerp: 0.03, threshold: 55 },   /* sixteenth – very fast                */
+    /* Chain: cursor → ♩ → ♪ → ♫ → ♬
+       Each note lerps toward the element ahead of it, so the trail
+       naturally follows the mouse path and scales in length with speed. */
+    var CHAIN = [
+      { lerp: 1,    char: null  },  /* 0: cursor anchor          */
+      { lerp: 0.22, char: '♩'  },  /* 1: quarter  — closest     */
+      { lerp: 0.14, char: '♪'  },  /* 2: eighth                 */
+      { lerp: 0.09, char: '♫'  },  /* 3: beamed eighth          */
+      { lerp: 0.05, char: '♬'  },  /* 4: sixteenth — farthest   */
     ];
 
-    var trail = NOTES.map(function (n) {
+    /* Position state for each chain link */
+    var pos = CHAIN.map(function () { return { x: -200, y: -200 }; });
+
+    /* DOM elements for the 4 trail notes (chain[1..4]) */
+    var trailEls = CHAIN.slice(1).map(function (n) {
       var el = document.createElement('div');
       el.className = 'trail-note';
       el.textContent = n.char;
       document.body.appendChild(el);
-      return { el: el, x: -200, y: -200 };
+      return el;
     });
 
     document.addEventListener('mousemove', function (e) {
@@ -1607,28 +1611,37 @@
       mx = e.clientX; my = e.clientY;
       var dx = mx - pmx, dy = my - pmy;
       velSmooth = velSmooth * 0.6 + Math.sqrt(dx * dx + dy * dy) * 0.4;
-      dot.style.left    = mx + 'px';
-      dot.style.top     = my + 'px';
+      dot.style.left = mx + 'px';
+      dot.style.top  = my + 'px';
       dot.style.opacity = '1';
     });
 
     (function animateTrail() {
-      velSmooth *= 0.88; /* decay toward 0 when mouse is still */
+      velSmooth *= 0.88;
 
-      for (var i = 0; i < NOTES.length; i++) {
-        var n = NOTES[i];
-        var s = trail[i];
-        s.x += (mx - s.x) * n.lerp;
-        s.y += (my - s.y) * n.lerp;
-        var dx = mx - s.x, dy = my - s.y;
+      /* Anchor: chain[0] always sits at the cursor */
+      pos[0].x = mx; pos[0].y = my;
+
+      /* Each subsequent link follows the one ahead */
+      for (var i = 1; i < CHAIN.length; i++) {
+        pos[i].x += (pos[i - 1].x - pos[i].x) * CHAIN[i].lerp;
+        pos[i].y += (pos[i - 1].y - pos[i].y) * CHAIN[i].lerp;
+      }
+
+      /* Opacity:
+           moving  → all notes at full opacity (always visible while dragging)
+           stopped → fade to 0 as each note converges on cursor ("blend" effect) */
+      var moving = Math.min(1, velSmooth); /* 1 while moving, decays to 0 at rest */
+
+      for (var i = 0; i < trailEls.length; i++) {
+        var p   = pos[i + 1];
+        var dx  = mx - p.x, dy = my - p.y;
         var dist = Math.sqrt(dx * dx + dy * dy);
-        /* velFactor: 0 below threshold, ramps to 1 over the next threshold worth of speed */
-        var velFactor  = Math.max(0, Math.min(1, (velSmooth - n.threshold) / n.threshold));
-        /* distFactor: fades to 0 as note converges on cursor (the "merge" effect) */
-        var distFactor = Math.min(1, dist / 22);
-        s.el.style.left    = s.x + 'px';
-        s.el.style.top     = s.y + 'px';
-        s.el.style.opacity = String(velFactor * distFactor * 0.8);
+        var fadeOpacity = Math.min(1, dist / 8) * 0.8; /* fades within 8 px of cursor */
+        var opacity = 0.8 * moving + fadeOpacity * (1 - moving);
+        trailEls[i].style.left    = p.x + 'px';
+        trailEls[i].style.top     = p.y + 'px';
+        trailEls[i].style.opacity = String(opacity);
       }
 
       requestAnimationFrame(animateTrail);
