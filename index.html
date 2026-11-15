@@ -1693,7 +1693,7 @@
     var orig = el.dataset.orig || el.textContent;
     el.dataset.orig = orig;
     var tickMs = 28;
-    var totalTicks = Math.round((2000 + Math.random() * 1000) / tickMs); // 2–3 s
+    var totalTicks = Math.round((1000 + Math.random() * 1000) / tickMs); // 1–2 s
     var resolvedAt = {};
     for (var i = 0; i < orig.length; i++) {
       if (orig[i] !== ' ') {
