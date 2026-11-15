@@ -1692,16 +1692,24 @@
     if (_scrambleActive[id]) { clearInterval(_scrambleActive[id]); }
     var orig = el.dataset.orig || el.textContent;
     el.dataset.orig = orig;
-    var iter = 0, total = orig.length * 3;
+    var tickMs = 28;
+    var totalTicks = Math.round((2000 + Math.random() * 1000) / tickMs); // 2–3 s
+    var resolvedAt = {};
+    for (var i = 0; i < orig.length; i++) {
+      if (orig[i] !== ' ') {
+        resolvedAt[i] = Math.floor(totalTicks * 0.15 + Math.random() * totalTicks * 0.85);
+      }
+    }
+    var iter = 0;
     _scrambleActive[id] = setInterval(function () {
       el.textContent = orig.split('').map(function (ch, i) {
         if (ch === ' ') return ' ';
-        if (i < iter / 3) return orig[i];
+        if (iter >= resolvedAt[i]) return orig[i];
         return _scrambleChars[Math.floor(Math.random() * _scrambleChars.length)];
       }).join('');
       iter++;
-      if (iter > total) { clearInterval(_scrambleActive[id]); delete _scrambleActive[id]; el.textContent = orig; }
-    }, 28);
+      if (iter > totalTicks) { clearInterval(_scrambleActive[id]); delete _scrambleActive[id]; el.textContent = orig; }
+    }, tickMs);
   }
 
 
